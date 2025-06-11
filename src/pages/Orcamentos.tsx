@@ -35,28 +35,32 @@ export default function Orcamentos() {
     localStorage.setItem("orcamentos", JSON.stringify(orcamentos));
   }, [orcamentos]);
 
-  // Filtra orçamentos conforme datas
   const orcamentosFiltrados = orcamentos.filter((o) => {
     if (filtroDataInicio && o.data < filtroDataInicio) return false;
     if (filtroDataFim && o.data > filtroDataFim) return false;
     return true;
   });
 
-  // Totais e valores por status
+  // Totais e contagem
   const totalOrcamentos = orcamentosFiltrados.length;
-  const totalPendentes = orcamentosFiltrados.filter(
+  const totalPendentesValor = orcamentosFiltrados
+    .filter((o) => o.status === "Pendente")
+    .reduce((acc, cur) => acc + cur.valor, 0);
+  const totalPendentesQtd = orcamentosFiltrados.filter(
     (o) => o.status === "Pendente"
-  );
-  const totalAprovados = orcamentosFiltrados.filter(
+  ).length;
+  const totalAprovadosValor = orcamentosFiltrados
+    .filter((o) => o.status === "Aprovado")
+    .reduce((acc, cur) => acc + cur.valor, 0);
+  const totalAprovadosQtd = orcamentosFiltrados.filter(
     (o) => o.status === "Aprovado"
-  );
-  const totalRecusados = orcamentosFiltrados.filter(
+  ).length;
+  const totalRecusadosValor = orcamentosFiltrados
+    .filter((o) => o.status === "Recusado")
+    .reduce((acc, cur) => acc + cur.valor, 0);
+  const totalRecusadosQtd = orcamentosFiltrados.filter(
     (o) => o.status === "Recusado"
-  );
-
-  const valorPendente = totalPendentes.reduce((acc, cur) => acc + cur.valor, 0);
-  const valorAprovado = totalAprovados.reduce((acc, cur) => acc + cur.valor, 0);
-  const valorRecusado = totalRecusados.reduce((acc, cur) => acc + cur.valor, 0);
+  ).length;
 
   function abrirModal() {
     setNovo({
@@ -97,14 +101,16 @@ export default function Orcamentos() {
       alert("Preencha todos os campos corretamente.");
       return;
     }
+
     const novoOrc: Orcamento = {
       id: Date.now(),
-      cliente: novo.cliente!,
-      descricao: novo.descricao!,
-      valor: novo.valor!,
-      data: novo.data!,
-      status: novo.status!,
+      cliente: novo.cliente,
+      descricao: novo.descricao,
+      valor: novo.valor,
+      data: novo.data,
+      status: novo.status as "Pendente" | "Aprovado" | "Recusado",
     };
+
     setOrcamentos((prev) => [novoOrc, ...prev]);
     fecharModal();
   }
@@ -123,9 +129,12 @@ export default function Orcamentos() {
 
     let y = 40;
     orcamentosFiltrados.forEach((orc) => {
-      const texto = `${orc.data} | ${orc.cliente} | R$ ${orc.valor.toFixed(
-        2
-      )} | ${orc.status} | ${orc.descricao}`;
+      const texto = `${orc.data} | ${orc.cliente} | ${
+        orc.status
+      } | ${orc.valor.toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      })} | ${orc.descricao}`;
       doc.text(texto, 14, y);
       y += 10;
       if (y > 280) {
@@ -148,42 +157,75 @@ export default function Orcamentos() {
     }
   }
 
+  const boxStyleBase = "flex-1 min-w-[220px] p-4 rounded shadow";
+
+  // Caixa estilizada igual ao seu print, parametrizando cores e texto
+  function CaixaResumo({
+    titulo,
+    corBg,
+    corTexto,
+    valor,
+    quantidade,
+  }: {
+    titulo: string;
+    corBg: string;
+    corTexto: string;
+    valor: number;
+    quantidade: number;
+  }) {
+    return (
+      <div
+        className={`flex flex-col justify-between ${boxStyleBase}`}
+        style={{ backgroundColor: corBg, color: corTexto }}
+      >
+        <h2 className="text-center font-bold text-lg mb-2">{titulo}</h2>
+        <div className="flex justify-between items-center">
+          <span className="text-3xl font-extrabold">
+            {valor.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            })}
+          </span>
+          <span className="text-xl font-semibold">{quantidade}</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-white rounded shadow relative">
       <h1 className="text-3xl font-bold mb-6 text-[#FF6600]">Orçamentos 📝</h1>
 
-      {/* Resumo */}
+      {/* Caixinhas resumo */}
       <div className="flex gap-6 mb-6 flex-wrap">
-        <div className="flex-1 min-w-[150px] p-4 bg-gray-100 rounded shadow">
-          <h2 className="font-semibold">Total Orçamentos</h2>
-          <p className="text-2xl font-bold">{totalOrcamentos}</p>
-        </div>
-
-        <div className="flex-1 min-w-[150px] p-4 bg-yellow-100 rounded shadow flex flex-col justify-between">
-          <h2 className="font-semibold text-center mb-2">Pendentes</h2>
-          <div className="flex items-center justify-between">
-            <p className="text-2xl font-bold text-yellow-800">
-              R$ {valorPendente.toFixed(2)}
-            </p>
-            <p className="text-xl font-bold text-yellow-600">
-              {totalPendentes.length}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex-1 min-w-[150px] p-4 bg-green-100 rounded shadow">
-          <h2 className="font-semibold">Aprovados</h2>
-          <p className="text-xl font-bold text-green-700">
-            R$ {valorAprovado.toFixed(2)}
-          </p>
-        </div>
-
-        <div className="flex-1 min-w-[150px] p-4 bg-red-100 rounded shadow">
-          <h2 className="font-semibold">Recusados</h2>
-          <p className="text-xl font-bold text-red-700">
-            R$ {valorRecusado.toFixed(2)}
-          </p>
-        </div>
+        <CaixaResumo
+          titulo="Total Orçamentos"
+          corBg="#E5E7EB" // cinza claro
+          corTexto="#000000"
+          valor={0}
+          quantidade={totalOrcamentos}
+        />
+        <CaixaResumo
+          titulo="Pendentes"
+          corBg="#FEF9C3" // amarelo claro
+          corTexto="#92400E"
+          valor={totalPendentesValor}
+          quantidade={totalPendentesQtd}
+        />
+        <CaixaResumo
+          titulo="Aprovados"
+          corBg="#D1FAE5" // verde claro
+          corTexto="#065F46"
+          valor={totalAprovadosValor}
+          quantidade={totalAprovadosQtd}
+        />
+        <CaixaResumo
+          titulo="Recusados"
+          corBg="#FEE2E2" // vermelho claro
+          corTexto="#991B1B"
+          valor={totalRecusadosValor}
+          quantidade={totalRecusadosQtd}
+        />
       </div>
 
       {/* Filtros e botões */}
@@ -209,7 +251,7 @@ export default function Orcamentos() {
         </div>
 
         <button
-          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
           onClick={() => {}}
           title="Filtrar"
         >
@@ -217,8 +259,8 @@ export default function Orcamentos() {
         </button>
 
         <button
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
           onClick={abrirModal}
-          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
           title="Novo Orçamento"
         >
           + Novo Orçamento
@@ -226,7 +268,7 @@ export default function Orcamentos() {
 
         <button
           onClick={imprimirRelatorio}
-          className="bg-gray-700 hover:bg-gray-900 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
+          className="bg-gray-700 hover:bg-gray-900 text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
           title="Imprimir relatório"
         >
           🖨️ Imprimir
@@ -234,22 +276,22 @@ export default function Orcamentos() {
 
         <button
           onClick={baixarPDF}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
-          title="Download PDF"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
+          title="Baixar PDF"
         >
           📥 Download PDF
         </button>
 
         <button
           onClick={compartilhar}
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
           title="Compartilhar link"
         >
           🔗 Compartilhar
         </button>
       </div>
 
-      {/* Modal */}
+      {/* Modal de Novo Orçamento */}
       {modalAberto && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 relative">
@@ -296,7 +338,7 @@ export default function Orcamentos() {
               className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
             />
 
-            <label className="block mb-2 font-semibold">Status</label>
+            <label className="block mb-4 font-semibold">Status</label>
             <select
               name="status"
               value={novo.status || "Pendente"}
@@ -354,7 +396,10 @@ export default function Orcamentos() {
                 <td className="p-2 border border-gray-300">{orc.cliente}</td>
                 <td className="p-2 border border-gray-300">{orc.descricao}</td>
                 <td className="p-2 border border-gray-300">
-                  R$ {orc.valor.toFixed(2)}
+                  {orc.valor.toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
                 </td>
                 <td className="p-2 border border-gray-300">{orc.data}</td>
                 <td
@@ -362,8 +407,8 @@ export default function Orcamentos() {
                     orc.status === "Pendente"
                       ? "text-yellow-800"
                       : orc.status === "Aprovado"
-                      ? "text-green-700"
-                      : "text-red-700"
+                      ? "text-green-800"
+                      : "text-red-800"
                   }`}
                 >
                   {orc.status}
