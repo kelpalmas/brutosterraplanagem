@@ -51,9 +51,7 @@ const categoriasSaida = [
 
 export default function Financeiro() {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
-  const [filtroTipo, setFiltroTipo] = useState<"entrada" | "saida" | "todos">(
-    "todos"
-  );
+  const [filtroTipo, setFiltroTipo] = useState("");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [modalAberto, setModalAberto] = useState(false);

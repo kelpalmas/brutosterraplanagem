@@ -1,4 +1,3 @@
-import React, { ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Login";
 import MainDashboard from "./MainDashboard";
