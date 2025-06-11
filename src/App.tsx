@@ -1,10 +1,15 @@
+import React, { ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./Login";
 import MainDashboard from "./MainDashboard";
 
-function ProtectedRoute({ children }) {
+interface ProtectedRouteProps {
+  children: ReactNode;
+}
+
+function ProtectedRoute({ children }: ProtectedRouteProps) {
   const loggedIn = localStorage.getItem("loggedIn") === "true";
-  return loggedIn ? children : <Navigate to="/" />;
+  return loggedIn ? <>{children}</> : <Navigate to="/" />;
 }
 
 export default function App() {
@@ -13,7 +18,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route
-          path="/dashboard"
+          path="/*"
           element={
             <ProtectedRoute>
               <MainDashboard />

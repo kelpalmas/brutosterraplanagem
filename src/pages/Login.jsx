@@ -2,15 +2,14 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
-  const navigate = useNavigate();
-
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
+  const navigate = useNavigate();
 
-  function handleLogin(e: React.FormEvent) {
+  function handleLogin(e) {
     e.preventDefault();
-    // Usuário e senha que você definiu
+    // Usuário e senha padrão (mude depois para backend!): admin/brutos1597534682
     if (usuario === "admin" && senha === "brutos1597534682") {
       localStorage.setItem("loggedIn", "true");
       navigate("/dashboard");
@@ -37,7 +36,6 @@ export default function Login() {
           onChange={(e) => setUsuario(e.target.value)}
           placeholder="Usuário"
           className="border rounded mb-4 px-3 py-2 bg-gray-100"
-          autoComplete="username"
         />
         <label className="text-sm mb-1 font-semibold text-gray-600">
           Senha
@@ -48,7 +46,6 @@ export default function Login() {
           onChange={(e) => setSenha(e.target.value)}
           placeholder="Senha"
           className="border rounded mb-4 px-3 py-2 bg-gray-100"
-          autoComplete="current-password"
         />
         <button
           type="submit"
