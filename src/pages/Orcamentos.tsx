@@ -12,12 +12,10 @@ type Orcamento = {
 
 export default function Orcamentos() {
   const [orcamentos, setOrcamentos] = useState<Orcamento[]>([]);
-  const [filtroStatus, setFiltroStatus] = useState<
-    "todos" | "Pendente" | "Aprovado" | "Recusado"
-  >("todos");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
+
   const [novo, setNovo] = useState<Partial<Orcamento>>({
     cliente: "",
     descricao: "",
@@ -37,23 +35,28 @@ export default function Orcamentos() {
     localStorage.setItem("orcamentos", JSON.stringify(orcamentos));
   }, [orcamentos]);
 
+  // Filtra orçamentos conforme datas
   const orcamentosFiltrados = orcamentos.filter((o) => {
-    if (filtroStatus !== "todos" && o.status !== filtroStatus) return false;
     if (filtroDataInicio && o.data < filtroDataInicio) return false;
     if (filtroDataFim && o.data > filtroDataFim) return false;
     return true;
   });
 
   // Totais e valores por status
-  const totalOrcamentos = orcamentos.length;
-  const totalPendentes = orcamentos.filter((o) => o.status === "Pendente");
-  const valorPendente = totalPendentes.reduce((acc, o) => acc + o.valor, 0);
+  const totalOrcamentos = orcamentosFiltrados.length;
+  const totalPendentes = orcamentosFiltrados.filter(
+    (o) => o.status === "Pendente"
+  );
+  const totalAprovados = orcamentosFiltrados.filter(
+    (o) => o.status === "Aprovado"
+  );
+  const totalRecusados = orcamentosFiltrados.filter(
+    (o) => o.status === "Recusado"
+  );
 
-  const totalAprovados = orcamentos.filter((o) => o.status === "Aprovado");
-  const valorAprovado = totalAprovados.reduce((acc, o) => acc + o.valor, 0);
-
-  const totalRecusados = orcamentos.filter((o) => o.status === "Recusado");
-  const valorRecusado = totalRecusados.reduce((acc, o) => acc + o.valor, 0);
+  const valorPendente = totalPendentes.reduce((acc, cur) => acc + cur.valor, 0);
+  const valorAprovado = totalAprovados.reduce((acc, cur) => acc + cur.valor, 0);
+  const valorRecusado = totalRecusados.reduce((acc, cur) => acc + cur.valor, 0);
 
   function abrirModal() {
     setNovo({
@@ -94,17 +97,20 @@ export default function Orcamentos() {
       alert("Preencha todos os campos corretamente.");
       return;
     }
-    const novoOrc = {
+    const novoOrc: Orcamento = {
       id: Date.now(),
-      cliente: novo.cliente,
-      descricao: novo.descricao,
-      valor: novo.valor,
-      data: novo.data,
-      status: novo.status,
-    } as Orcamento;
-
+      cliente: novo.cliente!,
+      descricao: novo.descricao!,
+      valor: novo.valor!,
+      data: novo.data!,
+      status: novo.status!,
+    };
     setOrcamentos((prev) => [novoOrc, ...prev]);
     fecharModal();
+  }
+
+  function imprimirRelatorio() {
+    window.print();
   }
 
   function baixarPDF() {
@@ -116,10 +122,10 @@ export default function Orcamentos() {
     doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 30);
 
     let y = 40;
-    orcamentosFiltrados.forEach((o) => {
-      const texto = `${o.data} | ${o.cliente} | ${
-        o.status
-      } | R$ ${o.valor.toFixed(2)} | ${o.descricao}`;
+    orcamentosFiltrados.forEach((orc) => {
+      const texto = `${orc.data} | ${orc.cliente} | R$ ${orc.valor.toFixed(
+        2
+      )} | ${orc.status} | ${orc.descricao}`;
       doc.text(texto, 14, y);
       y += 10;
       if (y > 280) {
@@ -153,15 +159,15 @@ export default function Orcamentos() {
           <p className="text-2xl font-bold">{totalOrcamentos}</p>
         </div>
 
-        <div className="flex-1 min-w-[150px] p-4 bg-yellow-100 rounded shadow flex items-center justify-between">
-          <div>
-            <h2 className="font-semibold">Pendentes</h2>
-            <p className="text-xl font-bold text-yellow-800">
+        <div className="flex-1 min-w-[150px] p-4 bg-yellow-100 rounded shadow flex flex-col justify-between">
+          <h2 className="font-semibold text-center mb-2">Pendentes</h2>
+          <div className="flex items-center justify-between">
+            <p className="text-2xl font-bold text-yellow-800">
+              R$ {valorPendente.toFixed(2)}
+            </p>
+            <p className="text-xl font-bold text-yellow-600">
               {totalPendentes.length}
             </p>
-          </div>
-          <div className="border-l border-yellow-600 pl-4">
-            <p>R$ {valorPendente.toFixed(2)}</p>
           </div>
         </div>
 
@@ -180,26 +186,8 @@ export default function Orcamentos() {
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-wrap gap-4 items-end mb-6">
-        <div className="flex flex-col">
-          <label className="text-sm font-semibold mb-1">Status</label>
-          <select
-            className="border px-3 py-2 rounded w-48"
-            value={filtroStatus}
-            onChange={(e) =>
-              setFiltroStatus(
-                e.target.value as "todos" | "Pendente" | "Aprovado" | "Recusado"
-              )
-            }
-          >
-            <option value="todos">Todos</option>
-            <option value="Pendente">Pendentes</option>
-            <option value="Aprovado">Aprovados</option>
-            <option value="Recusado">Recusados</option>
-          </select>
-        </div>
-
+      {/* Filtros e botões */}
+      <div className="flex flex-wrap gap-4 items-center mb-6">
         <div className="flex flex-col">
           <label className="text-sm font-semibold mb-1">Data Início</label>
           <input
@@ -221,7 +209,7 @@ export default function Orcamentos() {
         </div>
 
         <button
-          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
           onClick={() => {}}
           title="Filtrar"
         >
@@ -229,27 +217,35 @@ export default function Orcamentos() {
         </button>
 
         <button
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
+          onClick={abrirModal}
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
+          title="Novo Orçamento"
+        >
+          + Novo Orçamento
+        </button>
+
+        <button
+          onClick={imprimirRelatorio}
+          className="bg-gray-700 hover:bg-gray-900 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
+          title="Imprimir relatório"
+        >
+          🖨️ Imprimir
+        </button>
+
+        <button
           onClick={baixarPDF}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
           title="Download PDF"
         >
           📥 Download PDF
         </button>
 
         <button
-          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded transition font-semibold flex items-center gap-2"
           onClick={compartilhar}
+          className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded font-semibold flex items-center gap-2"
           title="Compartilhar link"
         >
           🔗 Compartilhar
-        </button>
-
-        <button
-          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold"
-          onClick={abrirModal}
-          title="Novo Orçamento"
-        >
-          + Novo Orçamento
         </button>
       </div>
 
@@ -261,6 +257,7 @@ export default function Orcamentos() {
 
             <label className="block mb-2 font-semibold">Cliente</label>
             <input
+              type="text"
               name="cliente"
               value={novo.cliente || ""}
               onChange={handleChange}
@@ -275,7 +272,7 @@ export default function Orcamentos() {
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
               rows={3}
-              placeholder="Descrição do serviço"
+              placeholder="Descrição do orçamento"
             />
 
             <label className="block mb-2 font-semibold">Valor</label>
@@ -287,7 +284,7 @@ export default function Orcamentos() {
               value={novo.valor || 0}
               onChange={handleChange}
               className="w-full border border-gray-300 rounded px-3 py-2 mb-4"
-              placeholder="Valor do orçamento"
+              placeholder="0.00"
             />
 
             <label className="block mb-2 font-semibold">Data</label>
@@ -349,27 +346,27 @@ export default function Orcamentos() {
                 </td>
               </tr>
             )}
-            {orcamentosFiltrados.map((o) => (
+            {orcamentosFiltrados.map((orc) => (
               <tr
-                key={o.id}
+                key={orc.id}
                 className="border border-gray-300 hover:bg-gray-50"
               >
-                <td className="p-2 border border-gray-300">{o.cliente}</td>
-                <td className="p-2 border border-gray-300">{o.descricao}</td>
+                <td className="p-2 border border-gray-300">{orc.cliente}</td>
+                <td className="p-2 border border-gray-300">{orc.descricao}</td>
                 <td className="p-2 border border-gray-300">
-                  R$ {o.valor.toFixed(2)}
+                  R$ {orc.valor.toFixed(2)}
                 </td>
-                <td className="p-2 border border-gray-300">{o.data}</td>
+                <td className="p-2 border border-gray-300">{orc.data}</td>
                 <td
                   className={`p-2 border border-gray-300 font-semibold ${
-                    o.status === "Pendente"
-                      ? "text-yellow-700"
-                      : o.status === "Aprovado"
+                    orc.status === "Pendente"
+                      ? "text-yellow-800"
+                      : orc.status === "Aprovado"
                       ? "text-green-700"
                       : "text-red-700"
                   }`}
                 >
-                  {o.status}
+                  {orc.status}
                 </td>
               </tr>
             ))}
