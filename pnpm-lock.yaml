@@ -17,9 +17,6 @@ importers:
       '@types/react-router-dom':
         specifier: 5.3.3
         version: 5.3.3
-      camtel-design:
-        specifier: 1.0.0
-        version: 1.0.0
       jspdf:
         specifier: 3.0.1
         version: 3.0.1
@@ -975,9 +972,6 @@ packages:
   camelcase-css@2.0.1:
     resolution: {integrity: sha512-QOSvevhslijgYwRx6Rv7zKdMF8lbRmx+uQGx2+vDc+KI/eBnsy9kit5aj23AgGu3pa4t9AgwbnXWqS+iOY+2aA==}
     engines: {node: '>= 6'}
-
-  camtel-design@1.0.0:
-    resolution: {integrity: sha512-c+2+a59IvcmzY+WivYgX9bGWGFC64N6ubR103BZd7kdRsmKnxh+D/CWTqFcKBffW4DsCKox04IxX87VIQyEHfg==}
 
   caniuse-lite@1.0.30001722:
     resolution: {integrity: sha512-DCQHBBZtiK6JVkAGw7drvAMK0Q0POD/xZvEmDp6baiMMP6QXXk9HpD6mNYBZWhOPG6LvIDb82ITqtWjhDckHCA==}
@@ -3394,8 +3388,6 @@ snapshots:
   callsites@3.1.0: {}
 
   camelcase-css@2.0.1: {}
-
-  camtel-design@1.0.0: {}
 
   caniuse-lite@1.0.30001722: {}
 
