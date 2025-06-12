@@ -1,8 +1,40 @@
 import React, { useState, useEffect } from "react";
 
+interface Empresa {
+  logo: string;
+  nome: string;
+  descricao: string;
+  responsavel: string;
+  cnpj: string;
+  telefone: string;
+  email: string;
+  endereco: string;
+  cidade: string;
+  estado: string;
+  cep: string;
+  facebook: string;
+  instagram: string;
+  linkedin: string;
+}
+
+interface Usuario {
+  nome: string;
+  tipo: string;
+  master: boolean;
+  permissoes?: Permissoes;
+}
+
+interface Permissoes {
+  dashboard: boolean;
+  orcamentos: boolean;
+  obras: boolean;
+  fechamento: boolean;
+  entradasSaidas: boolean;
+  relatorios: boolean;
+}
+
 export default function Configuracoes() {
-  // Estado para os dados da empresa
-  const [empresa, setEmpresa] = useState({
+  const [empresa, setEmpresa] = useState<Empresa>({
     logo: "/brutos.png",
     nome: "BRUTO'S TERRAPLANAGEM",
     descricao: "Serviços de Terraplanagem e Escavação",
@@ -19,13 +51,16 @@ export default function Configuracoes() {
     linkedin: "",
   });
 
-  // Estado para usuários (simples array)
-  const [usuarios, setUsuarios] = useState([
+  const [usuarios, setUsuarios] = useState<Usuario[]>([
     { nome: "brutos", tipo: "Administrador", master: true },
   ]);
 
-  // Campos para novo usuário
-  const [novoUsuario, setNovoUsuario] = useState({
+  const [novoUsuario, setNovoUsuario] = useState<{
+    nome: string;
+    senha: string;
+    confirmaSenha: string;
+    permissoes: Permissoes;
+  }>({
     nome: "",
     senha: "",
     confirmaSenha: "",
@@ -39,7 +74,6 @@ export default function Configuracoes() {
     },
   });
 
-  // Carregar dados do localStorage na montagem
   useEffect(() => {
     const dadosEmpresaSalvos = localStorage.getItem("dadosEmpresa");
     if (dadosEmpresaSalvos) setEmpresa(JSON.parse(dadosEmpresaSalvos));
@@ -48,26 +82,26 @@ export default function Configuracoes() {
     if (usuariosSalvos) setUsuarios(JSON.parse(usuariosSalvos));
   }, []);
 
-  // Atualiza estado ao alterar campos da empresa
-  function handleChangeEmpresa(e) {
+  function handleChangeEmpresa(
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) {
     const { name, value } = e.target;
     setEmpresa((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Salvar dados da empresa
   function salvarDadosEmpresa() {
     localStorage.setItem("dadosEmpresa", JSON.stringify(empresa));
     alert("Informações da empresa salvas com sucesso!");
   }
 
-  // Atualiza estado do novo usuário
-  function handleChangeUsuario(e) {
+  function handleChangeUsuario(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
     const { name, value } = e.target;
     setNovoUsuario((prev) => ({ ...prev, [name]: value }));
   }
 
-  // Alterna permissões no novo usuário
-  function togglePermissao(chave) {
+  function togglePermissao(chave: keyof Permissoes) {
     setNovoUsuario((prev) => ({
       ...prev,
       permissoes: {
@@ -77,7 +111,6 @@ export default function Configuracoes() {
     }));
   }
 
-  // Adiciona novo usuário
   function adicionarUsuario() {
     if (!novoUsuario.nome || !novoUsuario.senha || !novoUsuario.confirmaSenha) {
       alert("Preencha todos os campos do usuário.");
@@ -92,7 +125,7 @@ export default function Configuracoes() {
       return;
     }
 
-    const usuario = {
+    const usuario: Usuario = {
       nome: novoUsuario.nome,
       tipo: "Usuário",
       permissoes: novoUsuario.permissoes,

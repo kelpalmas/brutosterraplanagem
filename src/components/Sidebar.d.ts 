@@ -1,0 +1,4 @@
+declare module "./Sidebar" {
+  const Sidebar: React.FC;
+  export default Sidebar;
+}

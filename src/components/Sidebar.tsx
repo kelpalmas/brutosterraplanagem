@@ -1,3 +1,4 @@
+import React from "react";
 import {
   FaChartBar,
   FaFileInvoice,
@@ -32,33 +33,45 @@ export default function Sidebar() {
   return (
     <aside className="bg-[#FFA500] text-white w-60 min-h-screen flex flex-col">
       {/* Logo fixada em cima */}
-      <div className="flex items-center gap-100 px-16 h-40 border-b border-gray-800">
-        <div className="flex justify-end items-end h-200 px-1 border-b border-gray-800">
-          <img
-            src="/brutos.png"
-            className="h-24 filter drop-shadow-lg"
-            alt="Logo Brutos"
-          />
-        </div>
+      <div className="flex items-center justify-center h-40 border-b border-gray-800">
+        <img
+          src="/brutos.png"
+          alt="Logo Brutos"
+          className="h-24 filter drop-shadow-lg"
+        />
       </div>
 
       {/* Menu */}
       <nav className="flex-1 flex flex-col">
-        {menu.map((item) => (
+        {menu.map(({ icon, label, path }) => (
           <NavLink
-            key={item.label}
-            to={item.path}
-            className="flex items-center gap-4 px-6 py-3 text-base font-medium text-white"
+            key={label}
+            to={path}
+            className={({ isActive }) =>
+              `flex items-center gap-4 px-6 py-3 text-base font-medium ${
+                isActive
+                  ? "bg-white text-[#FFA500]"
+                  : "text-white hover:bg-[#e69500]"
+              } rounded`
+            }
           >
-            {item.icon}
-            {item.label}
+            {icon}
+            {label}
           </NavLink>
         ))}
 
         {/* Botão Sair */}
         <div className="mt-auto px-6 mb-8">
-          <button className="flex items-center gap-3 text-white hover:text-[#FF6600]">
-            <FaSignOutAlt /> Sair
+          <button
+            type="button"
+            className="flex items-center gap-3 text-white hover:text-[#FF6600] transition-colors"
+            onClick={() => {
+              localStorage.removeItem("loggedIn");
+              window.location.reload();
+            }}
+          >
+            <FaSignOutAlt />
+            Sair
           </button>
         </div>
       </nav>

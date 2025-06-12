@@ -24,6 +24,7 @@ const categoriasEntrada = [
   "Investimento dos Sócios",
   "Outros Recebimentos",
 ];
+
 const categoriasSaida = [
   "Combustível ⛽",
   "Manutenção 🛠️",
@@ -46,12 +47,17 @@ const categoriasSaida = [
   "Marketing e Publicidade 📢",
   "Assinaturas e Serviços 📄",
   "Outros",
-  ,
 ];
 
-export default function Financeiro() {
+export default function EntradasSaidas() {
   const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([]);
-  const [filtroTipo, setFiltroTipo] = useState("");
+  // ------------------------------------------------------------------
+  // ESTADOS DE FILTRO - declarados logo no topo do componente
+  // (mantenha os três setters porque eles são usados nos <input>s)
+  // ------------------------------------------------------------------
+  const [filtroTipo, setFiltroTipo] = useState<"todos" | "entrada" | "saida">(
+    "todos"
+  );
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
   const [modalAberto, setModalAberto] = useState(false);
@@ -67,12 +73,12 @@ export default function Financeiro() {
   const tabelaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const dados = localStorage.getItem("financeiro");
+    const dados = localStorage.getItem("entradasSaidas");
     if (dados) setMovimentacoes(JSON.parse(dados));
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("financeiro", JSON.stringify(movimentacoes));
+    localStorage.setItem("entradasSaidas", JSON.stringify(movimentacoes));
   }, [movimentacoes]);
 
   const movimentacoesFiltradas = movimentacoes.filter((m) => {
@@ -149,7 +155,7 @@ export default function Financeiro() {
     if (!tabelaRef.current) return;
     const doc = new jsPDF();
     doc.setFontSize(18);
-    doc.text("Relatório Financeiro", 14, 22);
+    doc.text("Relatório Entradas e Saídas", 14, 22);
     doc.setFontSize(11);
     doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 30);
 
@@ -166,7 +172,7 @@ export default function Financeiro() {
       }
     });
 
-    doc.save("relatorio-financeiro.pdf");
+    doc.save("relatorio-entradassaidas.pdf");
   }
 
   function compartilhar() {
@@ -180,22 +186,31 @@ export default function Financeiro() {
     }
   }
 
+  function formatarReal(valor: number) {
+    return valor.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
+  }
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-white rounded shadow relative">
-      <h1 className="text-3xl font-bold mb-6 text-[#FF6600]">Financeiro 💸</h1>
+      <h1 className="text-3xl font-bold mb-6 text-[#FF6600]">
+        Entradas e Saídas 💰💸
+      </h1>
 
       {/* Resumo */}
       <div className="flex gap-6 mb-6 flex-wrap">
         <div className="flex-1 min-w-[180px] p-4 bg-green-100 rounded shadow">
           <h2 className="text-lg font-semibold">Total Entradas</h2>
           <p className="text-green-700 text-xl font-bold">
-            R$ {totalEntradas.toFixed(2)}
+            {formatarReal(totalEntradas)}
           </p>
         </div>
         <div className="flex-1 min-w-[180px] p-4 bg-red-100 rounded shadow">
           <h2 className="text-lg font-semibold">Total Saídas</h2>
           <p className="text-red-700 text-xl font-bold">
-            R$ {totalSaidas.toFixed(2)}
+            {formatarReal(totalSaidas)}
           </p>
         </div>
         <div className="flex-1 min-w-[180px] p-4 bg-gray-100 rounded shadow">
@@ -205,61 +220,65 @@ export default function Financeiro() {
               saldo >= 0 ? "text-green-700" : "text-red-700"
             }`}
           >
-            R$ {saldo.toFixed(2)}
+            {formatarReal(saldo)}
           </p>
         </div>
       </div>
 
-      {/* Filtros + botões */}
+      {/* Filtros */}
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        {/* Filtros de data */}
+        <select
+          className="border rounded px-3 py-2"
+          value={filtroTipo}
+          onChange={(e) =>
+            setFiltroTipo(e.target.value as "todos" | "entrada" | "saida")
+          }
+        >
+          <option value="todos">Todos Tipos</option>
+          <option value="entrada">Entradas</option>
+          <option value="saida">Saídas</option>
+        </select>
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold mb-1">Data Início</label>
           <input
             type="date"
-            name="data"
-            value={novo.data || new Date().toISOString().slice(0, 10)}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-6"
+            className="border px-3 py-2 rounded w-40"
+            value={filtroDataInicio}
+            onChange={(e) => setFiltroDataInicio(e.target.value)}
           />
         </div>
+
         <div className="flex flex-col">
           <label className="text-sm font-semibold mb-1">Data Fim</label>
           <input
             type="date"
-            name="data"
-            value={novo.data || new Date().toISOString().slice(0, 10)}
-            onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-3 py-2 mb-6"
+            className="border px-3 py-2 rounded w-40"
+            value={filtroDataFim}
+            onChange={(e) => setFiltroDataFim(e.target.value)}
           />
         </div>
 
-        {/* Botão Filtrar */}
         <button
-          className="flex items-center gap-2 bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold"
           onClick={() => {}}
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold"
           title="Filtrar"
         >
-          <span role="img" aria-label="lupa">
-            🔍
-          </span>
-          Filtrar
+          🔍 Filtrar
         </button>
 
-        {/* Botão Nova Entrada */}
         <button
           onClick={() => abrirModal("entrada")}
-          className="flex items-center gap-2 bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold"
+          className="bg-[#FF6600] hover:bg-[#e65500] text-white px-5 py-2 rounded transition font-semibold"
           title="Nova Entrada"
         >
           +
         </button>
 
-        {/* Botões à direita (imprimir, pdf, compartilhar) */}
         <div className="ml-auto flex flex-wrap gap-3">
           <button
             onClick={imprimirRelatorio}
-            className="flex items-center gap-2 bg-gray-700 hover:bg-gray-900 text-white px-5 py-2 rounded transition font-semibold"
+            className="bg-gray-700 hover:bg-gray-900 text-white px-5 py-2 rounded transition font-semibold"
             title="Imprimir relatório"
           >
             🖨️ Imprimir
@@ -267,7 +286,7 @@ export default function Financeiro() {
 
           <button
             onClick={baixarPDF}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded transition font-semibold"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded transition font-semibold"
             title="Baixar PDF"
           >
             📥 Download PDF
@@ -275,7 +294,7 @@ export default function Financeiro() {
 
           <button
             onClick={compartilhar}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded transition font-semibold"
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded transition font-semibold"
             title="Compartilhar link"
           >
             🔗 Compartilhar
@@ -401,7 +420,7 @@ export default function Financeiro() {
                 <td className="p-2 border border-gray-300">{mov.categoria}</td>
                 <td className="p-2 border border-gray-300">{mov.descricao}</td>
                 <td className="p-2 border border-gray-300">
-                  R$ {mov.valor.toFixed(2)}
+                  {formatarReal(mov.valor)}
                 </td>
               </tr>
             ))}
